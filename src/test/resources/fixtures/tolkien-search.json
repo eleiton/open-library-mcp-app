@@ -1,0 +1,30 @@
+{
+  "numFound": 312,
+  "start": 0,
+  "docs": [
+    {
+      "key": "/works/OL27448W",
+      "title": "The Lord of the Rings",
+      "author_name": ["J. R. R. Tolkien"],
+      "author_key": ["OL26320A"],
+      "cover_i": 258027,
+      "subject": ["Fantasy", "Adventure", "Middle Earth", "Hobbits", "Magic", "Quests"]
+    },
+    {
+      "key": "/works/OL45804W",
+      "title": "The Hobbit",
+      "author_name": ["J. R. R. Tolkien"],
+      "author_key": ["OL26320A"],
+      "cover_i": 6979861,
+      "subject": ["Fantasy", "Dragons", "Adventure"]
+    },
+    {
+      "key": "/works/OL262758W",
+      "title": "The Silmarillion",
+      "author_name": ["J. R. R. Tolkien", "Christopher Tolkien"],
+      "author_key": ["OL26320A", "OL233271A"],
+      "cover_i": null,
+      "subject": null
+    }
+  ]
+}
