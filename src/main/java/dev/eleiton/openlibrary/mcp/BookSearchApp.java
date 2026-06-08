@@ -98,13 +98,12 @@ public class BookSearchApp {
     public BookResults searchBooks(
             @McpToolParam(description = "Keyword fallback: use only for partial/uncertain titles, proper names, or terms with no subject taxonomy entry. Never combine with `subject`.", required = false) String query,
             @McpToolParam(description = "Book title", required = false) String title,
-            @McpToolParam(description = "Author name", required = false) String author,
-            @McpToolParam(description = "Open Library author key, e.g. OL26320A", required = false) String author_key,
+            @McpToolParam(description = "Author name. Prefer this over author_key.", required = false) String author,
             @McpToolParam(description = "Genre, theme, or topic inferred from user intent (e.g. 'space opera', 'gothic horror'). Prefer this over `query` for thematic searches. Never combine with `query`.", required = false) String subject,
             @McpToolParam(description = "ISBN", required = false) String isbn,
             @McpToolParam(description = "Three-letter MARC language code (eng, spa, fre, ger, ita, jpn, por, rus, chi, ara, etc.)", required = false) String language,
             @McpToolParam(description = "Max results 1-6, default 3", required = false) Integer limit) {
-        return doSearch(query, title, author, author_key, subject, isbn, language, limit);
+        return doSearch(query, title, author, subject, isbn, language, limit);
     }
 
     // Tells the host "when this tool result arrives, open the panel at this URI."
@@ -115,18 +114,18 @@ public class BookSearchApp {
         }
     }
 
-    private BookResults doSearch(String query, String title, String author, String authorKey,
+    private BookResults doSearch(String query, String title, String author,
                                  String subject, String isbn, String language, Integer limit) {
-        SearchCriteria criteria = buildCriteria(query, title, author, authorKey, subject, isbn, language, limit);
+        SearchCriteria criteria = buildCriteria(query, title, author, subject, isbn, language, limit);
         return toResults(criteria, client.search(criteria, criteria.limit() * OVERFETCH_FACTOR));
     }
 
     private static SearchCriteria buildCriteria(
-            String query, String title, String author, String authorKey,
+            String query, String title, String author,
             String subject, String isbn, String language, Integer limit) {
         int clamped = clampLimit(limit);
         SearchCriteria criteria = new SearchCriteria(
-                trim(query), trim(title), trim(author), trim(authorKey),
+                trim(query), trim(title), trim(author),
                 trim(subject), trim(isbn), trim(language), clamped);
         if (!criteria.hasAnyField()) {
             throw new IllegalArgumentException(

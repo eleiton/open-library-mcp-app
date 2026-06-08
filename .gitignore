@@ -3,3 +3,4 @@ temp
 build
 .gradle
 .DS_Store
+promptfoo/node_modules

@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: |
+  Single shot tool selection tests. Each prompt is a natural language request
+  with no prior conversation.  We let the LLM decide which tool to call and
+  with which arguments, then inspect the raw tool_call directly.
+
+providers:
+  - id: openai:chat:llama3.2
+    label: ollama-llama3.2
+    config: { apiBaseUrl: http://localhost:11434/v1, apiKey: ollama, tools: file://tools/search-books.json }
+
+
+  - id: openai:chat:qwen2.5:latest
+    label: ollama-qwen2.5
+    config: { apiBaseUrl: http://localhost:11434/v1, apiKey: ollama, tools: file://tools/search-books.json }
+
+  - id: openai:chat:mistral-small
+    label: ollama-mistral-small
+    config: { apiBaseUrl: http://localhost:11434/v1, apiKey: ollama, tools: file://tools/search-books.json }
+
+prompts:
+  - |
+    You are a book-discovery assistant with access to the search-books tool.
+    Call it to answer the user. Do not ask clarifying questions first.
+
+    User: {{user}}
+
+defaultTest:
+  options:
+    transform: |
+      const tc = Array.isArray(output) ? output[0] : null;
+      if (!tc?.function?.arguments) return {};
+      try { return JSON.parse(tc.function.arguments); }
+      catch { return {}; }
+
+tests:
+  - description: 'author intent → author param, never query'
+    vars:
+      user: 'find me books by Tolkien'
+    assert:
+      - type: javascript
+        value: output?.author?.toLowerCase() === 'tolkien'
+      - type: javascript
+        value: output?.query === undefined
+
+  - description: 'genre intent → subject param, never query'
+    vars:
+      user: 'show me some science fition novels'
+    assert:
+      - type: javascript
+        value: typeof output?.subject === 'string' && output.subject.length > 0
+      - type: javascript
+        value: output?.subject?.toLowerCase() === 'science fiction'
+      - type: javascript
+        value: output?.query === undefined
+
+  - description: 'title intent → title param contains "hobbit"'
+    vars:
+      user: 'do you have The Hobbit?'
+    assert:
+      - type: javascript
+        value: /hobbit/i.test(output?.title || '')
+
+  - description: 'ISBN intent → exact isbn param'
+    vars:
+      user: 'look up ISBN 9780261103573'
+    assert:
+      - type: javascript
+        value: output?.isbn === '9780261103573'
+
+  - description: 'language intent → MARC code + subject populated'
+    vars:
+      user: 'find me Spanish-language books about astronomy'
+    assert:
+      - type: javascript
+        value: output?.language === 'spa'
+      - type: javascript
+        value: output?.subject?.toLowerCase() === 'astronomy'
+
+  - description: 'limit intent → numeric limit=1'
+    vars:
+      user: 'just give me one book about cats'
+    assert:
+      - type: javascript
+        value: output?.limit === 1

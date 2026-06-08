@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: |
+  Multi-turn tool-selection tests. Each test injects a synthetic prior
+  conversation via the `history` var and sends a new `current_turn` message.
+  The assertion inspects the single tool_call the model emits for that turn.
+
+  Requires:
+    - Ollama with a tool-calling model pulled (ollama pull qwen2.5:latest).
+    - No MCP server needed — these tests don't execute the tool.
+
+providers:
+  - id: openai:chat:llama3.2
+    label: ollama-llama3.2
+    config: { apiBaseUrl: http://localhost:11434/v1, apiKey: ollama, tools: file://tools/search-books.json }
+
+  - id: openai:chat:qwen2.5:latest
+    label: ollama-qwen2.5
+    config: { apiBaseUrl: http://localhost:11434/v1, apiKey: ollama, tools: file://tools/search-books.json }
+
+  - id: openai:chat:mistral-small
+    label: ollama-mistral-small
+    config: { apiBaseUrl: http://localhost:11434/v1, apiKey: ollama, tools: file://tools/search-books.json }
+
+prompts:
+  - file://prompts/multi-turn.js
+
+defaultTest:
+  options:
+    transform: |
+      const tc = Array.isArray(output) ? output[0] : null;
+      if (!tc?.function?.arguments) return {};
+      try { return JSON.parse(tc.function.arguments); }
+      catch { return {}; }
+
+tests:
+  # 1. Refinement: user adds an author to an existing subject search.
+  # The model must KEEP subject="science fiction" and ADD author="Asimov".
+  - description: 'turn 2: retain `subject` when adding `author`'
+    vars:
+      history:
+        - role: user
+          content: 'find me some cool science fiction books'
+        - role: assistant
+          content: '[called search-books]'
+      current_turn: 'only from Asimov'
+    assert:
+      - type: javascript
+        value: output?.author?.toLowerCase().includes('asimov')
+      - type: javascript
+        value: output?.subject === 'science fiction'
+
+  # 2. Refinement: user narrows by language. Must keep subject AND author.
+  - description: 'turn 3: retain `subject` + `author` when adding `language`'
+    vars:
+      history:
+        - role: user
+          content: 'find me some science fiction books'
+        - role: assistant
+          content: '[called search-books with {"subject": "science fiction"}]'
+        - role: user
+          content: 'only from Asimov'
+        - role: assistant
+          content: '[called search-books with {"subject": "science fiction", "author": "Asimov"}]'
+      current_turn: 'only in Spanish'
+    assert:
+      - type: javascript
+        value: output?.language === 'spa'
+      - type: javascript
+        value: output?.subject === 'science fiction'
+      - type: javascript
+        value: output?.author?.toLowerCase() === 'asimov'
+
+  # 3. Topic switch: clear unrelated previous filters. The user moved from
+  # science fiction / Tolkien / Spanish to WWII books — author and language
+  # should be dropped.
+  - description: 'turn 4: drop old filters on clear topic switch'
+    vars:
+      history:
+        - role: user
+          content: 'find science fiction by Tolkien in Spanish'
+        - role: assistant
+          content: '[called search-books with {"subject": "science fiction", "author": "Tolkien", "language": "spa"}]'
+      current_turn: 'now show me books about WWII'
+    assert:
+      - type: javascript
+        value: output?.author === undefined
+      - type: javascript
+        value: output?.language === undefined
+      - type: javascript
+        value: typeof output?.subject === 'string' && /wwii|world war/i.test(output.subject)

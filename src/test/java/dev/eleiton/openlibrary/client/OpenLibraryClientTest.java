@@ -41,7 +41,7 @@ class OpenLibraryClientTest {
                 .andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
 
         SearchResponse response = client.search(new SearchCriteria(
-                "tolkien", null, null, null, null, null, null, 3), 9);
+                "tolkien", null, null, null, null, null, 3), 9);
 
         assertThat(response.numFound()).isEqualTo(312);
         assertThat(response.docs()).hasSize(3);
@@ -55,12 +55,11 @@ class OpenLibraryClientTest {
     @Test
     void onlyNonBlankFieldsAreSentAsQueryParams() {
         server.expect(queryParam("subject", "Fantasy"))
-                .andExpect(queryParam("author_key", "OL26320A"))
                 .andExpect(queryParam("limit", "15"))
                 .andRespond(withSuccess("{\"numFound\":0,\"docs\":[]}", MediaType.APPLICATION_JSON));
 
         client.search(new SearchCriteria(
-                null, "   ", null, "OL26320A", "Fantasy", "", null, 5), 15);
+                null, "   ", null, "Fantasy", "", null, 5), 15);
 
         server.verify();
     }

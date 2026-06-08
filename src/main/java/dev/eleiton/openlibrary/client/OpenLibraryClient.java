@@ -13,6 +13,7 @@ import java.util.List;
 public class OpenLibraryClient {
 
     private static final String FIELDS = "key,title,author_name,author_key,cover_i,subject";
+    private static final String USER_AGENT = "BookSearchApp/0.1 (https://example.com/contact)";
 
     private final RestClient http;
 
@@ -21,7 +22,10 @@ public class OpenLibraryClient {
     }
 
     public OpenLibraryClient(RestClient.Builder builder) {
-        this.http = builder.baseUrl("https://openlibrary.org").build();
+        this.http = builder
+                .baseUrl("https://openlibrary.org")
+                .defaultHeader("User-Agent", USER_AGENT)
+                .build();
     }
 
     public SearchResponse search(SearchCriteria criteria, int fetchLimit) {
@@ -31,7 +35,6 @@ public class OpenLibraryClient {
         addIfPresent(uri, "q", criteria.query());
         addIfPresent(uri, "title", criteria.title());
         addIfPresent(uri, "author", criteria.author());
-        addIfPresent(uri, "author_key", criteria.authorKey());
         addIfPresent(uri, "subject", criteria.subject());
         addIfPresent(uri, "isbn", criteria.isbn());
         addIfPresent(uri, "language", criteria.language());

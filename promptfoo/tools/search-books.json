@@ -1,0 +1,45 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "search-books",
+      "description": "Search Open Library and show matching books in a UI panel (cover, title, author, plus chips for further searches). Provide at least one of: query, title, author, author_key, subject, isbn, language.\n\nFIELD SELECTION: all parameters are ANDed by the API, so use as few as needed. Each field accepts a single value only. Never attempt to express multiple authors or subjects in one call. For genre or theme intent (e.g. \"space opera\", \"gothic horror\"), infer the best matching OpenLibrary subject term and pass it as `subject`. Reserve `query` for keyword lookups that don't fit any other field: partial or uncertain titles, proper names, or highly specific terms with no subject taxonomy entry. Never combine `query` and `subject` — they are ANDed and will over-restrict results.\n\nCONVERSATIONAL REFINEMENT: when the user's message refines or narrows the previous book search (e.g. 'now by Tolkien', 'only in Spanish', 'recent ones', 'and about dragons'), pass ALL of the previously-applied parameters PLUS the new one — do not start over. After each render the panel posts its current filters into the model context; use that as the baseline. Only drop the previous filters when the user clearly switches topic (e.g. 'now show me books about WWII').\n\nCHIP CLICKS post a follow-up like 'Search books with author_key=OL...A AND subject=\"Fantasy\"' — pass each name=value pair as the corresponding tool argument (quoted values are strings).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Keyword fallback: use only for partial/uncertain titles, proper names, or terms with no subject taxonomy entry. Never combine with `subject`."
+          },
+          "title": {
+            "type": "string",
+            "description": "Book title"
+          },
+          "author": {
+            "type": "string",
+            "description": "Author name. Prefer this over author_key."
+          },
+          "subject": {
+            "type": "string",
+            "description": "Genre, theme, or topic inferred from user intent (e.g. 'space opera', 'gothic horror'). Prefer this over `query` for thematic searches. Never combine with `query`."
+          },
+          "isbn": {
+            "type": "string",
+            "description": "ISBN"
+          },
+          "language": {
+            "type": "string",
+            "description": "Three-letter MARC language code (eng, spa, fre, ger, ita, jpn, por, rus, chi, ara, etc.)"
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Max results 1-6, default 3"
+          }
+        },
+        "required": [],
+        "$schema": "https://json-schema.org/draft/2020-12/schema"
+      }
+    }
+  }
+]

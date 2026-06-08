@@ -37,7 +37,7 @@ class BookSearchAppTest {
                 "/works/OL1W", "Book", List.of("Author"), List.of("OL1A"), 42, List.of("s"));
         when(client.search(any(), anyInt())).thenReturn(new SearchResponse(1, List.of(doc)));
 
-        BookResults results = app.searchBooks("tolkien", null, null, null, null, null, null, 3);
+        BookResults results = app.searchBooks("tolkien", null,  null, null, null, null, 3);
 
         assertThat(results.books()).hasSize(1);
         assertThat(results.books().getFirst().title()).isEqualTo("Book");
@@ -45,14 +45,14 @@ class BookSearchAppTest {
 
     @Test
     void searchBooksValidatesBlankFields() {
-        assertThatThrownBy(() -> app.searchBooks(null, "  ", "", null, null, null, null, 3))
+        assertThatThrownBy(() -> app.searchBooks(null, "  ", "", null, null, null, 3))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("At least one search field");
     }
 
     @Test
     void languageAloneIsAValidSearch() {
-        app.searchBooks(null, null, null, null, null, null, "spa", 3);
+        app.searchBooks(null, null, null, null, null, "spa", 3);
         ArgumentCaptor<SearchCriteria> captor = ArgumentCaptor.forClass(SearchCriteria.class);
         verify(client).search(captor.capture(), anyInt());
         assertThat(captor.getValue().language()).isEqualTo("spa");
@@ -60,9 +60,9 @@ class BookSearchAppTest {
 
     @Test
     void limitDefaultsToThreeAndClampsTo3() {
-        app.searchBooks("tolkien", null, null, null, null, null, null, null);
-        app.searchBooks("tolkien", null, null, null, null, null, null, 99);
-        app.searchBooks("tolkien", null, null, null, null, null, null, -4);
+        app.searchBooks("tolkien", null, null, null, null, null, null);
+        app.searchBooks("tolkien", null, null, null, null, null, 99);
+        app.searchBooks("tolkien", null, null, null, null, null, -4);
 
         ArgumentCaptor<SearchCriteria> captor = ArgumentCaptor.forClass(SearchCriteria.class);
         verify(client, times(3)).search(captor.capture(), anyInt());
@@ -74,7 +74,7 @@ class BookSearchAppTest {
 
     @Test
     void eachFieldForwardedToClient() {
-        app.searchBooks("q1", "t1", "a1", "OL1A", "s1", "isbn1", "eng", 2);
+        app.searchBooks("q1", "t1", "a1", "s1", "isbn1", "eng", 2);
 
         ArgumentCaptor<SearchCriteria> captor = ArgumentCaptor.forClass(SearchCriteria.class);
         verify(client).search(captor.capture(), anyInt());
@@ -82,7 +82,6 @@ class BookSearchAppTest {
         assertThat(c.query()).isEqualTo("q1");
         assertThat(c.title()).isEqualTo("t1");
         assertThat(c.author()).isEqualTo("a1");
-        assertThat(c.authorKey()).isEqualTo("OL1A");
         assertThat(c.subject()).isEqualTo("s1");
         assertThat(c.isbn()).isEqualTo("isbn1");
         assertThat(c.language()).isEqualTo("eng");
@@ -91,7 +90,7 @@ class BookSearchAppTest {
 
     @Test
     void blankStringsAreNormalizedToNull() {
-        app.searchBooks("q1", "  ", "", null, "  ", null, "  ", 3);
+        app.searchBooks("q1", "  ", "", null, "  ", "  ", 3);
 
         ArgumentCaptor<SearchCriteria> captor = ArgumentCaptor.forClass(SearchCriteria.class);
         verify(client).search(captor.capture(), anyInt());
@@ -115,7 +114,7 @@ class BookSearchAppTest {
                 List.of("Lonely Author"), List.of(), null, null);
         when(client.search(any(), anyInt())).thenReturn(new SearchResponse(2, List.of(a, b)));
 
-        BookResults results = app.searchBooks("anything", null, null, null, null, null, null, 3);
+        BookResults results = app.searchBooks("anything", null, null, null, null, null, 3);
 
         assertThat(results.totalFound()).isEqualTo(2);
         assertThat(results.books()).hasSize(1);

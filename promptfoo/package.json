@@ -1,0 +1,11 @@
+{
+  "name": "open-library-mcp-promptfoo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync-tools": "node scripts/sync-tools.mjs"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.7.2"
+  }
+}

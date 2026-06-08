@@ -4,7 +4,6 @@ public record SearchCriteria(
         String query,
         String title,
         String author,
-        String authorKey,
         String subject,
         String isbn,
         String language,
@@ -14,7 +13,6 @@ public record SearchCriteria(
         return notBlank(query)
                 || notBlank(title)
                 || notBlank(author)
-                || notBlank(authorKey)
                 || notBlank(subject)
                 || notBlank(isbn)
                 || notBlank(language);
